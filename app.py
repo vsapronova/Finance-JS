@@ -121,7 +121,7 @@ def index():
                         cash=usd(user_cash),
                         grand_total=usd(grand_total))
 
-class FinanceException(Exception):
+class HTTPException(Exception):
     def __init__(self, message, code):
         self.message = message
         self.code = code
@@ -135,12 +135,9 @@ class ApiException(Exception):
 
 @app.errorhandler(Exception)
 def handle_exception(error):
-    if isinstance(error, FinanceException):
+    if isinstance(error, HTTPException):
         return apology(error.message, error.code)
-    if isinstance(error, ApiException):
-        # return response with error info
-        return apology(error.message, error.code)
-    raise error
+    return apology("Really Bad Thing Happened")
 
 
 @app.route("/api/buy", methods=["POST"])
@@ -179,15 +176,15 @@ def buy():
         shares = request.form.get("shares")
 
         if symbol is None:
-            raise FinanceException("must provide correct symbol", 403)
+            raise HTTPException("must provide correct symbol", 403)
 
         if shares is None:
-            raise FinanceException("must provide shares", 403)
+            raise HTTPException("must provide shares", 403)
 
         quantity = int(shares)
 
         if quantity < 1:
-            raise FinanceException("number of shares must be 1 or greater", 403)
+            raise HTTPException("number of shares must be 1 or greater", 403)
         cash = storage.get_cash(session["user_id"])
         stocks_cost = symbol["price"] * quantity
         if cash >= stocks_cost:
@@ -196,7 +193,7 @@ def buy():
             storage.update_cash(session["user_id"], left)
             position_update(symbol, quantity)
         else:
-            raise FinanceException("not enough cash")
+            raise HTTPException("not enough cash")
 
         return redirect("/")
 
@@ -254,11 +251,11 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            raise FinanceException("must provide username", 403)
+            raise HTTPException("must provide username", 403)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            raise FinanceException("must provide password", 403)
+            raise HTTPException("must provide password", 403)
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -266,7 +263,7 @@ def login():
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            raise FinanceException("invalid username and/or password", 403)
+            raise HTTPException("invalid username and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
@@ -312,14 +309,14 @@ def register():
         password = request.form.get("password")
         conf_passw = request.form.get("confirmation")
         if not username:
-            raise FinanceException("must provide username", 403)
+            raise HTTPException("must provide username", 403)
         elif not password:
-            raise FinanceException("must provide password", 403)
+            raise HTTPException("must provide password", 403)
         elif not conf_passw:
-            raise FinanceException("must provide password confirmation", 403)
+            raise HTTPException("must provide password confirmation", 403)
 
         if password != conf_passw:
-            raise FinanceException("different passwords, must be the same", 403)
+            raise HTTPException("different passwords, must be the same", 403)
         else:
             hash_pass = generate_password_hash(password)
             rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -328,7 +325,7 @@ def register():
                 db.execute(f"INSERT INTO users (username, hash, cash) VALUES ('{username}', '{hash_pass}', '10000')")
                 return redirect("/")
             else:
-                raise FinanceException("this username is already created")
+                raise HTTPException("this username is already created")
     else:
         return render_template("register.html")
 
@@ -343,10 +340,10 @@ def sell():
         shares = request.form.get("shares")
 
         if symbol is None:
-            raise FinanceException("must provide correct symbol", 403)
+            raise HTTPException("must provide correct symbol", 403)
 
         if shares is None:
-            raise FinanceException("must provide shares", 403)
+            raise HTTPException("must provide shares", 403)
 
         selling_quantity = int(shares)
         existing_quantity = storage.get_position(session["user_id"], symbol["symbol"])
@@ -354,7 +351,7 @@ def sell():
 
 
         if selling_quantity > existing_quantity:
-            raise FinanceException("you don't have enough shares", 403)
+            raise HTTPException("you don't have enough shares", 403)
         else:
             date = datetime.datetime.now()
             storage.add_transaction(session["user_id"], symbol["name"], selling_quantity * -1, symbol["price"], date, symbol["symbol"] )
