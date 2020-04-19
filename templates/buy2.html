@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <form id="form_buy" action="/api/buy" method="post">
+    <form id="form_buy" method="post">
         <div class="form-group">
             <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Symbol" type="text">
         </div>
@@ -14,22 +14,33 @@
         </div>
         <button class="btn btn-primary" type="submit">Buy</button>
     </form>
-{% endblock %}
+    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left:380px" class="alert alert-danger" role="alert" >
+            Error!
+    </div>
 
 <script>
+
+
 $( document ).ready(function() {
 
   $( "#form_buy" ).submit(function( event ) {
     event.preventDefault();
+    $("#error").hide();
+
 
     var values = $("#form_buy").serializeArray();
 
-    var posting = $.post( "/api/buy", values )
+    var posting = $.post( "/api/buy2", values )
         .done( function(data) {
             window.location.href = "index.html";
         })
         .fail( function(xhr, textStatus, errorThrown) {
-            window.location.href = "apology.html";
+            if (xhr.hasOwnProperty('responseJSON')) {
+                $("#error").show();
+                $("#error").text(xhr.responseJSON.message);
+            } else {
+                window.location.href = "apology.html";
+            }
         });
 
     <!--var symbol = $("input[name=symbol]").val();-->
@@ -44,9 +55,10 @@ $( document ).ready(function() {
       <!--url: 'http://127.0.0.1:5000/buy',-->
       <!--type: 'post'-->
     <!--}).done(function(){})-->
-  }
+  })
 
-
-}
+})
 
 </script>
+
+{% endblock %}

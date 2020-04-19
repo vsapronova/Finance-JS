@@ -128,21 +128,23 @@ class HTTPException(Exception):
 
 
 class ApiException(Exception):
-    def __init__(self, message, code):
+    def __init__(self, message, code = 400):
         self.message = message
         self.code = code
 
 
 @app.errorhandler(Exception)
 def handle_exception(error):
+    if isinstance(error, ApiException):
+        return jsonify(message=error.message), error.code
     if isinstance(error, HTTPException):
         return apology(error.message, error.code)
-    return apology("Really Bad Thing Happened")
+    # return apology("Really Bad Thing Happened")
 
 
-@app.route("/api/buy", methods=["POST"])
+@app.route("/api/buy2", methods=["POST"])
 @login_required
-def api_buy():
+def api_buy2():
     symbol = lookup(request.form.get("symbol"))
     shares = request.form.get("shares")
 
@@ -165,6 +167,12 @@ def api_buy():
         position_update(symbol, quantity)
     else:
         raise ApiException("not enough cash")
+
+
+@app.route("/buy2", methods=["GET"])
+@login_required
+def buy2():
+    return render_template("buy2.html")
 
 
 @app.route("/buy", methods=["GET", "POST"])
