@@ -15,7 +15,7 @@
         <button class="btn btn-primary" type="submit">Buy</button>
     </form>
     <div id="error" style="display: none; margin: 50px; width: 300px; margin-left:380px" class="alert alert-danger" role="alert" >
-            Error!
+
     </div>
 
 <script>
@@ -30,7 +30,7 @@ $( document ).ready(function() {
 
     var values = $("#form_buy").serializeArray();
 
-    var posting = $.post( "/api/buy2", values )
+    var posting = $.post( "/api/buy", values )
         .done( function(data) {
             window.location.href = "index.html";
         })
@@ -43,18 +43,6 @@ $( document ).ready(function() {
             }
         });
 
-    <!--var symbol = $("input[name=symbol]").val();-->
-    <!--var shares = $("input[name=shares]").val();-->
-
-    <!--var request = {-->
-      <!--"symbol": symbol,-->
-      <!--"shares": shares,-->
-    <!--};-->
-
-    <!--$(".form-control").ajaxForm({-->
-      <!--url: 'http://127.0.0.1:5000/buy',-->
-      <!--type: 'post'-->
-    <!--}).done(function(){})-->
   })
 
 })

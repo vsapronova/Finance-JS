@@ -139,32 +139,37 @@ def handle_exception(error):
         return jsonify(message=error.message), error.code
     if isinstance(error, HTTPException):
         return apology(error.message, error.code)
+    raise error
     # return apology("Really Bad Thing Happened")
 
 
-@app.route("/api/buy2", methods=["POST"])
+@app.route("/api/buy", methods=["POST"])
 @login_required
 def api_buy2():
-    symbol = lookup(request.form.get("symbol"))
+    symbol = request.form.get("symbol")
     shares = request.form.get("shares")
 
-    if symbol is None:
-        raise ApiException("must provide correct symbol", 403)
+    if symbol is "":
+        raise ApiException("symbol can't be empty", 403)
 
-    if shares is None:
+    if shares is "":
         raise ApiException("must provide shares", 403)
 
     quantity = int(shares)
-
     if quantity < 1:
         raise ApiException("number of shares must be 1 or greater", 403)
+
+    stock = lookup(symbol)
+    if stock is None:
+        raise ApiException("invalid stock symbol", 403)
+
     cash = storage.get_cash(session["user_id"])
-    stocks_cost = symbol["price"] * quantity
+    stocks_cost = stock["price"] * quantity
     if cash >= stocks_cost:
-        insert_transaction(symbol, quantity)
+        insert_transaction(stock, quantity)
         left = cash - stocks_cost
         storage.update_cash(session["user_id"], left)
-        position_update(symbol, quantity)
+        position_update(stock, quantity)
     else:
         raise ApiException("not enough cash")
 
@@ -381,4 +386,4 @@ def sell():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run()
