@@ -1,5 +1,6 @@
 import os
 import datetime
+from storage import Storage
 
 from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
@@ -39,56 +40,6 @@ Session(app)
 # Make sure API key is set
 if not os.environ.get("API_KEY"):
     raise RuntimeError("API_KEY not set")
-
-
-class Storage:
-    def __init__(self, db):
-        self.db = db
-
-    def get_positions(self, user_id):
-        return self.db.execute("SELECT * FROM positions WHERE user_id=:user_id", user_id=user_id)
-
-    def get_position(self, user_id, symbol):
-        position = self.db.execute("SELECT * FROM positions WHERE user_id = :id AND symbol = :symbol", id=user_id, symbol=symbol)
-        if len(position) < 1:
-            return None
-        return position[0]
-
-    def add_position(self, user_id, symbol, quantity):
-        self.db.execute("INSERT INTO positions(user_id, symbol, quantity) VALUES (:user_id, :symbol, :quantity)",
-        user_id=user_id,
-        symbol=symbol,
-        quantity=quantity)
-
-    def update_position_quantity(self, user_id, symbol, quantity):
-        self.db.execute("UPDATE positions SET quantity = :quantity WHERE symbol = :symbol AND user_id = :user_id",
-        quantity=quantity,
-        symbol=symbol,
-        user_id=user_id)
-
-    def get_transactions(self, user_id):
-        return self.db.execute("SELECT * FROM transactions WHERE user_id = :user_id", user_id=user_id)
-
-    def add_transaction(self, user_id, company, quantity, price, date, symbol):
-        self.db.execute("INSERT INTO transactions(user_id, company, quantity, price, date, symbol) VALUES (:user_id, :company, :quantity, :price, :date, :symbol)",
-        user_id=user_id,
-        company=company,
-        quantity=quantity,
-        price=price,
-        date=date,
-        symbol=symbol)
-
-    def get_cash(self, user_id):
-        result = self.db.execute("SELECT cash FROM users WHERE id = :user_id", user_id=user_id)
-        return result[0]["cash"]
-
-    def update_cash(self, user_id, cash):
-        self.db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash=cash, user_id=user_id )
-
-    def delete_position(self, user_id, symbol):
-        self.db.execute("DELETE FROM positions WHERE user_id = :user_id AND symbol = :symbol AND quantity = 0",
-        user_id=user_id,
-        symbol=symbol)
 
 
 # Configure CS50 Library to use SQLite database
@@ -165,14 +116,15 @@ def api_buy2():
 
     cash = storage.get_cash(session["user_id"])
     stocks_cost = stock["price"] * quantity
-    if cash >= stocks_cost:
-        insert_transaction(stock, quantity)
-        left = cash - stocks_cost
-        storage.update_cash(session["user_id"], left)
-        position_update(stock, quantity)
-    else:
+    if not cash >= stocks_cost:
         raise ApiException("not enough cash")
 
+    insert_transaction(stock, quantity)
+    left = cash - stocks_cost
+    storage.update_cash(session["user_id"], left)
+    position_update(stock, quantity)
+
+    return "", 200
 
 @app.route("/buy2", methods=["GET"])
 @login_required
@@ -271,15 +223,15 @@ def login():
             raise HTTPException("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
+        username = request.form.get("username")
+        row = storage.get_user(username)
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(row) != 1 or not check_password_hash(row[0]["hash"], request.form.get("password")):
             raise HTTPException("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = row[0]["id"]
 
         # Redirect user to home page
         return redirect("/")
@@ -332,13 +284,13 @@ def register():
             raise HTTPException("different passwords, must be the same", 403)
         else:
             hash_pass = generate_password_hash(password)
-            rows = db.execute("SELECT * FROM users WHERE username = :username",
-                              username=request.form.get("username"))
-            if len(rows) == 0:
-                db.execute(f"INSERT INTO users (username, hash, cash) VALUES ('{username}', '{hash_pass}', '10000')")
+            row = storage.get_user(username)
+
+            if len(row) == 0:
+                storage.add_new_user(username, hash_pass)
                 return redirect("/")
             else:
-                raise HTTPException("this username is already created")
+                raise HTTPException("this username is already created", 400)
     else:
         return render_template("register.html")
 
@@ -380,7 +332,8 @@ def sell():
                 storage.delete_position(session["user_id"], symbol["symbol"])
             return redirect("/")
     else:
-        symbols = db.execute("SELECT DISTINCT symbol FROM positions WHERE user_id=:user_id", user_id=session["user_id"])
+        user_id = session["user_id"]
+        symbols = storage.get_user_stocks(user_id)
         return render_template("sell.html", symbols=symbols)
 
 
