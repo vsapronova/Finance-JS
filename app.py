@@ -224,14 +224,14 @@ def login():
 
         # Query database for username
         username = request.form.get("username")
-        row = storage.get_user(username)
+        user = storage.get_user(username)
 
         # Ensure username exists and password is correct
-        if len(row) != 1 or not check_password_hash(row[0]["hash"], request.form.get("password")):
+        if user is None or not check_password_hash(user["hash"], request.form.get("password")):
             raise HTTPException("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = row[0]["id"]
+        session["user_id"] = user["id"]
 
         # Redirect user to home page
         return redirect("/")
@@ -284,9 +284,9 @@ def register():
             raise HTTPException("different passwords, must be the same", 403)
         else:
             hash_pass = generate_password_hash(password)
-            row = storage.get_user(username)
+            user = storage.get_user(username)
 
-            if len(row) == 0:
+            if user is None:
                 storage.add_new_user(username, hash_pass)
                 return redirect("/")
             else:

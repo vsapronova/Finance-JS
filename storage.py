@@ -3,7 +3,10 @@ class Storage:
         self.db = db
 
     def get_user(self, username):
-        return self.db.execute("SELECT * FROM users WHERE username = :username", username=username)
+        users = self.db.execute("SELECT * FROM users WHERE username = :username", username=username)
+        if len(users) < 1:
+            return None
+        return users[0]
 
     def get_user_stocks(self, user_id):
         return self.db.execute("SELECT DISTINCT symbol FROM positions WHERE user_id=:user_id", user_id=user_id)
