@@ -94,6 +94,16 @@ def handle_exception(error):
     # return apology("Really Bad Thing Happened")
 
 
+@app.route("/api/user", methods=["GET"])
+@login_required
+def api_user():
+    user = storage.get_user_by_id(session["user_id"])
+
+    if user is None:
+        return "", 401
+    else:
+        return jsonify({"user": user})
+
 @app.route("/api/buy", methods=["POST"])
 @login_required
 def api_buy2():
@@ -125,6 +135,7 @@ def api_buy2():
     position_update(stock, quantity)
 
     return "", 200
+
 
 @app.route("/buy2", methods=["GET"])
 @login_required
@@ -224,7 +235,7 @@ def login():
 
         # Query database for username
         username = request.form.get("username")
-        user = storage.get_user(username)
+        user = storage.get_user_by_username(username)
 
         # Ensure username exists and password is correct
         if user is None or not check_password_hash(user["hash"], request.form.get("password")):
@@ -284,7 +295,7 @@ def register():
             raise HTTPException("different passwords, must be the same", 403)
         else:
             hash_pass = generate_password_hash(password)
-            user = storage.get_user(username)
+            user = storage.get_user_by_username(username)
 
             if user is None:
                 storage.add_new_user(username, hash_pass)

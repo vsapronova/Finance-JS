@@ -2,11 +2,20 @@ class Storage:
     def __init__(self, db):
         self.db = db
 
-    def get_user(self, username):
+    def get_user_by_username(self, username):
         users = self.db.execute("SELECT * FROM users WHERE username = :username", username=username)
         if len(users) < 1:
             return None
         return users[0]
+
+    def get_user_by_id(self, user_id, with_hash = False):
+        users = self.db.execute("SELECT * FROM users WHERE id = :user_id", user_id=user_id)
+        if len(users) < 1:
+            return None
+        user =users[0]
+        if not with_hash:
+            user.pop("hash", None)
+        return user
 
     def get_user_stocks(self, user_id):
         return self.db.execute("SELECT DISTINCT symbol FROM positions WHERE user_id=:user_id", user_id=user_id)
