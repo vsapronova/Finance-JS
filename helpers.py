@@ -35,6 +35,15 @@ def login_required(f):
     return decorated_function
 
 
+def login_required2(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return "", 401
+        return f(*args, **kwargs)
+
+    return decorated_function
+
 def lookup(symbol):
     """Look up quote for symbol."""
 

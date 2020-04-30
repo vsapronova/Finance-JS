@@ -10,7 +10,7 @@ from werkzeug.exceptions import default_exceptions, HTTPException, InternalServe
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
-from helpers import apology, login_required, lookup, usd
+from helpers import apology, login_required, lookup, usd, login_required2
 
 
 # Configure application
@@ -95,7 +95,7 @@ def handle_exception(error):
 
 
 @app.route("/api/user", methods=["GET"])
-@login_required
+@login_required2
 def api_user():
     user = storage.get_user_by_id(session["user_id"])
 
@@ -103,6 +103,7 @@ def api_user():
         return "", 401
     else:
         return jsonify({"user": user})
+
 
 @app.route("/api/buy", methods=["POST"])
 @login_required
