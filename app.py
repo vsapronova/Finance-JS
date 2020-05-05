@@ -137,12 +137,68 @@ def api_buy2():
 
     return "", 200
 
+@app.route("/api/sell", methods=["POST"])
+@login_required
+def api_sell2():
+    symbol = lookup(request.form.get("symbol"))
+    shares = request.form.get("shares")
+
+    if symbol is "":
+        raise ApiException("choose a symbol", 403)
+
+    if shares is "":
+        raise ApiException("must provide shares", 403)
+
+    quantity = int(shares)
+    if quantity < 1:
+        raise ApiException("number of shares must be 1 or greater", 403)
+
+    selling_quantity = int(shares)
+    existing_quantity = storage.get_position(session["user_id"], symbol["symbol"])
+    existing_quantity = int(existing_quantity["quantity"])
+    if selling_quantity > existing_quantity:
+        raise HTTPException("you don't have enough shares", 403)
+    else:
+        date = datetime.datetime.now()
+        storage.add_transaction(session["user_id"], symbol["name"], selling_quantity * -1, symbol["price"], date,
+                                symbol["symbol"])
+
+        existing_cash = storage.get_cash(session["user_id"])
+        cash = selling_quantity * symbol["price"] + existing_cash
+        storage.update_cash(session["user_id"], cash)
+
+        if selling_quantity < existing_quantity:
+            new_quantity = existing_quantity - selling_quantity
+            storage.update_position_quantity(session["user_id"], symbol["symbol"], new_quantity)
+        elif selling_quantity == existing_quantity:
+            storage.delete_position(session["user_id"], symbol["symbol"])
+        return "", 200
+
+
+@app.route("/api/history", methods=["GET"])
+@login_required
+def api_transactions_history():
+    """Show history of transactions"""
+    user_id = session["user_id"]
+    transactions = storage.get_transactions(user_id)
+    return jsonify({"success": True, "transactions": transactions})
 
 @app.route("/buy2", methods=["GET"])
 @login_required
 def buy2():
     return render_template("buy2.html")
 
+@app.route("/sell2", methods=["GET"])
+@login_required
+def sell2():
+    user_id = session["user_id"]
+    symbols = storage.get_user_stocks(user_id)
+    return render_template("sell2.html", symbols=symbols)
+
+@app.route("/history2", methods=["GET"])
+@login_required
+def history2():
+    return render_template("history2.html")
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
@@ -196,6 +252,48 @@ def position_update(symbol, quantity):
         storage.update_position_quantity(session["user_id"], symbol["symbol"], new_quantity)
     else:
         storage.add_position(session["user_id"], symbol["symbol"], quantity)
+
+
+@app.route("/sell", methods=["GET", "POST"])
+@login_required
+def sell():
+    """Sell shares of stock"""
+
+    if request.method == "POST":
+        symbol = lookup(request.form.get("symbol"))
+        shares = request.form.get("shares")
+
+        if symbol is None:
+            raise HTTPException("must provide correct symbol", 403)
+
+        if shares is None:
+            raise HTTPException("must provide shares", 403)
+
+        selling_quantity = int(shares)
+        existing_quantity = storage.get_position(session["user_id"], symbol["symbol"])
+        existing_quantity = int(existing_quantity["quantity"])
+
+
+        if selling_quantity > existing_quantity:
+            raise HTTPException("you don't have enough shares", 403)
+        else:
+            date = datetime.datetime.now()
+            storage.add_transaction(session["user_id"], symbol["name"], selling_quantity * -1, symbol["price"], date, symbol["symbol"] )
+
+            existing_cash = storage.get_cash(session["user_id"])
+            cash = selling_quantity * symbol["price"] + existing_cash
+            storage.update_cash(session["user_id"], cash)
+
+            if selling_quantity < existing_quantity:
+                new_quantity = existing_quantity - selling_quantity
+                storage.update_position_quantity(session["user_id"], symbol["symbol"], new_quantity)
+            elif selling_quantity == existing_quantity:
+                storage.delete_position(session["user_id"], symbol["symbol"])
+            return redirect("/")
+    else:
+        user_id = session["user_id"]
+        symbols = storage.get_user_stocks(user_id)
+        return render_template("sell.html", symbols=symbols)
 
 
 
@@ -307,46 +405,6 @@ def register():
         return render_template("register.html")
 
 
-@app.route("/sell", methods=["GET", "POST"])
-@login_required
-def sell():
-    """Sell shares of stock"""
-
-    if request.method == "POST":
-        symbol = lookup(request.form.get("symbol"))
-        shares = request.form.get("shares")
-
-        if symbol is None:
-            raise HTTPException("must provide correct symbol", 403)
-
-        if shares is None:
-            raise HTTPException("must provide shares", 403)
-
-        selling_quantity = int(shares)
-        existing_quantity = storage.get_position(session["user_id"], symbol["symbol"])
-        existing_quantity = int(existing_quantity["quantity"])
-
-
-        if selling_quantity > existing_quantity:
-            raise HTTPException("you don't have enough shares", 403)
-        else:
-            date = datetime.datetime.now()
-            storage.add_transaction(session["user_id"], symbol["name"], selling_quantity * -1, symbol["price"], date, symbol["symbol"] )
-
-            existing_cash = storage.get_cash(session["user_id"])
-            cash = selling_quantity * symbol["price"] + existing_cash
-            storage.update_cash(session["user_id"], cash)
-
-            if selling_quantity < existing_quantity:
-                new_quantity = existing_quantity - selling_quantity
-                storage.update_position_quantity(session["user_id"], symbol["symbol"], new_quantity)
-            elif selling_quantity == existing_quantity:
-                storage.delete_position(session["user_id"], symbol["symbol"])
-            return redirect("/")
-    else:
-        user_id = session["user_id"]
-        symbols = storage.get_user_stocks(user_id)
-        return render_template("sell.html", symbols=symbols)
 
 
 

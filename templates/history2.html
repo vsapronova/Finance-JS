@@ -1,0 +1,43 @@
+{% extends "layout2.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Symbol</th>
+                <th scope="col">Shares</th>
+                <th scope="col">Price</th>
+                <th scope="col">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{transaction.symbol}}</td>
+                    <td>{{transaction.quantity}}</td>
+                    <td>{{transaction.price}}</td>
+                    <td><%= transaction.date %></td>
+                </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+    $( document ).ready(function() {
+      const request = new XMLHttpRequest();
+      request.open("GET", "/api/history");
+      request.onload = () => {
+          const data = JSON.parse(request.responseText);
+
+          <!--if (data.success) {-->
+              <!--for (transaction in data.transactions) {-->
+                  <!---->
+              <!--}-->
+          }
+    });
+    </script>
+{% endblock %}
