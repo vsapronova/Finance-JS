@@ -5,39 +5,44 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped">
-        <thead>
+    <div id="transactions">
+    </div>
+
+<script type="text/html" id="transactions_template">
+<![CDATA[
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Symbol</th>
+            <th scope="col">Shares</th>
+            <th scope="col">Price</th>
+            <th scope="col">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+            <% for (t=0; t < this.transactions.length; t++) {
+                 var transaction = this.transactions[t]; %>
             <tr>
-                <th scope="col">Symbol</th>
-                <th scope="col">Shares</th>
-                <th scope="col">Price</th>
-                <th scope="col">Date</th>
+                <td><%= transaction.symbol %></td>
+                <td><%= transaction.quantity %></td>
+                <td><%= transaction.price %></td>
+                <td><%= transaction.date %></td>
             </tr>
-        </thead>
-        <tbody>
-                {% for transaction in transactions %}
-                <tr>
-                    <td>{{transaction.symbol}}</td>
-                    <td>{{transaction.quantity}}</td>
-                    <td>{{transaction.price}}</td>
-                    <td><%= transaction.date %></td>
-                </tr>
-                {% endfor %}
-        </tbody>
-    </table>
+            <% } %>
+    </tbody>
+</table>
+]]>
+</script>
 
     <script>
     $( document ).ready(function() {
       const request = new XMLHttpRequest();
       request.open("GET", "/api/history");
-      request.onload = () => {
-          const data = JSON.parse(request.responseText);
-
-          <!--if (data.success) {-->
-              <!--for (transaction in data.transactions) {-->
-                  <!---->
-              <!--}-->
-          }
+      request.onload = function(data) {
+        const json_data = JSON.parse(request.responseText);
+        $('#transactions').append($('#transactions_template').jqote(json_data));
+      }
+      request.send();
     });
     </script>
 {% endblock %}
