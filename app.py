@@ -133,7 +133,11 @@ def api_quote2():
     """Get stock quote."""
     # session.clear()
     symbol = request.form.get("symbol")
+    if symbol is "":
+        raise ApiException("symbol can't be empty", 403)
     quote = lookup(symbol)
+    if quote is None:
+        raise ApiException("invalid stock symbol", 403)
     return jsonify({"success": True, "quote": quote})
 
 @app.route("/api/buy", methods=["POST"])
