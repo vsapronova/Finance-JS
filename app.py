@@ -127,7 +127,14 @@ def api_index2():
                            "cash": usd(user_cash),
                            "grand_total": usd(grand_total)})
 
-
+@app.route("/api/quote", methods=["GET", "POST"])
+@login_required
+def api_quote2():
+    """Get stock quote."""
+    # session.clear()
+    symbol = request.form.get("symbol")
+    quote = lookup(symbol)
+    return jsonify({"success": True, "quote": quote})
 
 @app.route("/api/buy", methods=["POST"])
 @login_required
@@ -206,6 +213,11 @@ def api_transactions_history():
     user_id = session["user_id"]
     transactions = storage.get_transactions(user_id)
     return jsonify({"success": True, "transactions": transactions})
+
+@app.route("/quote2", methods=["GET"])
+@login_required
+def quote2():
+    return render_template("quote2.html")
 
 @app.route("/buy2", methods=["GET"])
 @login_required

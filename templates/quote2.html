@@ -1,0 +1,62 @@
+{% extends "layout2.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+
+
+
+    <form id="form_quote" method="post">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Stock's symbol" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Get a quote</button>
+    </form>
+    <div id="quote">
+    </div>
+    <script type="text/html" id="quote_template">
+    <![CDATA[
+    <div class="info" style="margin-top: 30px">
+        <p style="font-weight: bold" ><%= this.name %></p>
+        <p style="font-weight: bold" ><%= this.price %></p>
+        <p style="font-weight: bold" ><%= this.symbol %></p>
+    </div>
+    ]]>
+    </script>
+    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left: 380px" class="alert alert-danger" role="alert" >
+
+    </div>
+    <script>
+    $( document ).ready(function() {
+    $( "#form_quote" ).submit(function( event ) {
+    event.preventDefault();
+    $("#error").hide();
+     var values = $("#form_quote").serializeArray();
+     $('#form_quote').each(function(){
+    this.reset();
+    });
+    $(".info").html("");
+
+
+    var request = $.post( "/api/quote", values )
+
+      .done( function(data) {
+        const json_data = JSON.parse(request.responseText);
+        $('#quote').append($('#quote_template').jqote(json_data.quote));
+      })
+      .fail( function(xhr, textStatus, errorThrown) {
+          if (xhr.hasOwnProperty('responseJSON')) {
+              $("#error").show();
+              $("#error").text(xhr.responseJSON.message);
+          } else {
+              window.location.href = "apology.html";
+          }
+      });
+    })
+
+  })
+
+    </script>
+{% endblock %}
