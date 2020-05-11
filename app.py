@@ -105,6 +105,30 @@ def api_user():
         return jsonify({"user": user})
 
 
+@app.route("/api/positions", methods=["GET"])
+@login_required
+def api_index2():
+    """Show portfolio of stocks"""
+    user_id = session["user_id"]
+    positions = storage.get_positions(user_id)
+    grand_total = 0
+    for position in positions:
+        stock = lookup(position["symbol"])
+        total = position["quantity"] * stock["price"]
+        grand_total += total
+        position["company"] = stock["name"]
+        position["price"] = stock["price"]
+        position["total"] = usd(total)
+
+    user_cash = storage.get_cash(session["user_id"])
+    grand_total += user_cash
+
+    return jsonify({"success": True, "positions": positions,
+                           "cash": usd(user_cash),
+                           "grand_total": usd(grand_total)})
+
+
+
 @app.route("/api/buy", methods=["POST"])
 @login_required
 def api_buy2():
@@ -194,6 +218,11 @@ def sell2():
     user_id = session["user_id"]
     symbols = storage.get_user_stocks(user_id)
     return render_template("sell2.html", symbols=symbols)
+
+@app.route("/portfolio", methods=["GET"])
+@login_required
+def portfolio():
+    return render_template("portfolio.html")
 
 @app.route("/history2", methods=["GET"])
 @login_required

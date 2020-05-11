@@ -1,0 +1,59 @@
+{% extends "layout2.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <div id="positions">
+    </div>
+    <script type="text/html" id="positions_template">
+    <![CDATA[
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Symbol</th>
+                <th scope="col">Name</th>
+                <th scope="col">Shares</th>
+                <th scope="col">Price</th>
+                <th scope="col">TOTAL</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td>CASH</td>
+                <td colspan="3"></td>
+
+                <td>{{cash}}</td>
+            </tr>
+            <tr>
+                <td colspan="4"></td>
+                <td>{{grand_total}}</td>
+            </tr>
+        </tfoot>
+        <tbody>
+                {% for position in positions %}
+                <tr>
+                    <td>{{position.symbol}}</td>
+                    <td>{{position.company}}</td>
+                    <td>{{position.quantity}}</td>
+                    <td>{{position.price}}</td>
+                    <td>{{position.total}}</td>
+                </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+    ]]>
+    </script>
+    <script>
+    $( document ).ready(function() {
+      const request = new XMLHttpRequest();
+      request.open("GET", "/api/positions");
+      request.onload = function(data) {
+        const json_data = JSON.parse(request.responseText);
+        $('#positions').append($('#positions_template').jqote(json_data));
+      }
+      request.send();
+    });
+    </script>
+{% endblock %}
