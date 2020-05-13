@@ -104,6 +104,29 @@ def api_user():
     else:
         return jsonify({"user": user})
 
+@app.route("/api/register", methods=["POST"])
+def api_register2():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    conf_passw = request.form.get("confirmation")
+    if not username:
+        raise HTTPException("must provide username", 403)
+    elif not password:
+        raise HTTPException("must provide password", 403)
+    elif not conf_passw:
+        raise HTTPException("must provide password confirmation", 403)
+
+    if password != conf_passw:
+        raise HTTPException("different passwords, must be the same", 403)
+    else:
+        hash_pass = generate_password_hash(password)
+        user = storage.get_user_by_username(username)
+
+        if user is None:
+            storage.add_new_user(username, hash_pass)
+            return "", 200
+        else:
+            raise HTTPException("this username is already created", 400)
 
 @app.route("/api/positions", methods=["GET"])
 @login_required
@@ -217,6 +240,10 @@ def api_transactions_history():
     user_id = session["user_id"]
     transactions = storage.get_transactions(user_id)
     return jsonify({"success": True, "transactions": transactions})
+
+@app.route("/register2", methods=["GET"])
+def register2():
+    return render_template("register2.html")
 
 @app.route("/quote2", methods=["GET"])
 @login_required

@@ -1,0 +1,53 @@
+{% extends "layout2.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <form id="form_register" method="post">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="Username" type="text">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="password" placeholder="Password" type="password">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="confirmation" placeholder="Confirm password" type="password">
+        </div>
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left: 380px" class="alert alert-danger" role="alert" >
+
+    </div>
+    <script>
+
+
+    $( document ).ready(function() {
+
+      $( "#form_register" ).submit(function( event ) {
+        event.preventDefault();
+        $("#error").hide();
+
+
+        var values = $("#form_register").serializeArray();
+
+        var request = $.post( "/api/register", values )
+            .done( function(data) {
+                window.location.href = "login";
+            })
+            .fail( function(xhr, textStatus, errorThrown) {
+                if (xhr.hasOwnProperty('responseJSON')) {
+                    $("#error").show();
+                    $("#error").text(xhr.responseJSON.message);
+                } else {
+                    window.location.href = "apology.html";
+                }
+            });
+
+      })
+
+    })
+
+</script>
+{% endblock %}

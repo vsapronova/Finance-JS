@@ -54,13 +54,21 @@
         <script>
 
             $( document ).ready(function() {
-              var getting = $.get( "/api/user")
+              var request = $.get( "/api/user")
                   .done( function(data) {
                       $('.menu-private').show();
                       $('.menu-public').hide();
                   })
                   .fail( function(xhr, textStatus, errorThrown) {
-                      window.location.href = "login.html";
+                    if (xhr.status === 401) {
+                        if (window.location.href.indexOf("register2") === -1 && window.location.href.indexOf("login") === -1 ) {
+                            window.location.href = "login";
+                        }
+
+                    }
+
+
+
                   });
 
 
