@@ -1,0 +1,51 @@
+{% extends "layout2.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+    <form id="form_login" method="post">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="Username" type="text">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="password" placeholder="Password" type="password">
+        </div>
+        <button class="btn btn-primary" type="submit">Log In</button>
+    </form>
+    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left: 380px" class="alert alert-danger" role="alert" >
+
+    </div>
+
+    <script>
+
+
+    $( document ).ready(function() {
+
+      $( "#form_login" ).submit(function( event ) {
+        event.preventDefault();
+        $("#error").hide();
+
+
+        var values = $("#form_login").serializeArray();
+
+        var request = $.post( "/api/login", values )
+            .done( function(data) {
+                window.location.href = "portfolio";
+            })
+            .fail( function(xhr, textStatus, errorThrown) {
+                if (xhr.hasOwnProperty('responseJSON')) {
+                    $("#error").show();
+                    $("#error").text(xhr.responseJSON.message);
+                } else {
+                    window.location.href = "apology.html";
+                }
+            });
+
+      })
+
+    })
+
+</script>
+{% endblock %}

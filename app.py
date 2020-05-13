@@ -104,6 +104,32 @@ def api_user():
     else:
         return jsonify({"user": user})
 
+@app.route("/api/login", methods=["POST"])
+def api_login2():
+    session.clear()
+    # Ensure username was submitted
+    if not request.form.get("username"):
+        raise HTTPException("must provide username", 403)
+
+    # Ensure password was submitted
+    elif not request.form.get("password"):
+        raise HTTPException("must provide password", 403)
+
+    # Query database for username
+    username = request.form.get("username")
+    user = storage.get_user_by_username(username)
+
+    # Ensure username exists and password is correct
+    if user is None or not check_password_hash(user["hash"], request.form.get("password")):
+        raise HTTPException("invalid username and/or password", 403)
+
+    # Remember which user has logged in
+    session["user_id"] = user["id"]
+
+    # Redirect user to home page
+    return "", 200
+
+
 @app.route("/api/register", methods=["POST"])
 def api_register2():
     username = request.form.get("username")
@@ -240,6 +266,10 @@ def api_transactions_history():
     user_id = session["user_id"]
     transactions = storage.get_transactions(user_id)
     return jsonify({"success": True, "transactions": transactions})
+
+@app.route("/login2", methods=["GET"])
+def login2():
+    return render_template("login2.html")
 
 @app.route("/register2", methods=["GET"])
 def register2():
