@@ -56,22 +56,20 @@
             $( document ).ready(function() {
               var request = $.get( "/api/user")
                   .done( function(data) {
-                      $('.menu-private').show();
-                      $('.menu-public').hide();
+
+                    $('.menu-private').show();
+                    $('.menu-public').hide();
+
                   })
                   .fail( function(xhr, textStatus, errorThrown) {
                     if (xhr.status === 401) {
-                        if (window.location.href.indexOf("register2") === -1 && window.location.href.indexOf("login") === -1 ) {
-                            window.location.href = "login";
+                        if (window.location.href.indexOf("register2") === -1 && window.location.href.indexOf("login2") === -1 ) {
+                            window.location.href = "login2";
                         }
 
                     }
 
-
-
                   });
-
-
             })
 
 

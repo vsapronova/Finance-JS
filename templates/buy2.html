@@ -33,7 +33,7 @@ $( document ).ready(function() {
 
     var posting = $.post( "/api/buy", values )
         .done( function(data) {
-            window.location.href = "/";
+            window.location.href = "portfolio";
         })
         .fail( function(xhr, textStatus, errorThrown) {
             if (xhr.hasOwnProperty('responseJSON')) {

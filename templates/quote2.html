@@ -37,8 +37,9 @@
      $('#form_quote').each(function(){
     this.reset();
     });
-    $(".info").html("");
-
+    $(".info").each(function(){
+    this.reset();
+    });
 
     var request = $.post( "/api/quote", values )
 

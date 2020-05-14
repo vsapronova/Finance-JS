@@ -5,6 +5,10 @@
 {% endblock %}
 
 {% block main %}
+    <div id="positions">
+    </div>
+    <script type="text/html" id="positions_template">
+    <![CDATA[
     <table class="table table-striped">
         <thead>
             <tr>
@@ -19,24 +23,38 @@
             <tr>
                 <td>CASH</td>
                 <td colspan="3"></td>
+                <td><%= this.cash %></td>
 
-                <td>{{cash}}</td>
             </tr>
             <tr>
                 <td colspan="4"></td>
-                <td>{{grand_total}}</td>
+                <td><%= this.grand_total %></td>
             </tr>
         </tfoot>
         <tbody>
-                {% for position in positions %}
+                <% for (t=0; t < this.positions.length; t++) {
+                 var position = this.positions[t]; %>
                 <tr>
-                    <td>{{position.symbol}}</td>
-                    <td>{{position.company}}</td>
-                    <td>{{position.quantity}}</td>
-                    <td>{{position.price}}</td>
-                    <td>{{position.total}}</td>
+                    <td><%= position.symbol %></td>
+                    <td><%= position.company %></td>
+                    <td><%= position.quantity %></td>
+                    <td><%= position.price %></td>
+                    <td><%= position.total %></td>
                 </tr>
-                {% endfor %}
+                <% } %>
         </tbody>
     </table>
+    ]]>
+    </script>
+    <script>
+    $( document ).ready(function() {
+      const request = new XMLHttpRequest();
+      request.open("GET", "/api/positions");
+      request.onload = function(data) {
+        const json_data = JSON.parse(request.responseText);
+        $('#positions').append($('#positions_template').jqote(json_data));
+      }
+      request.send();
+    });
+    </script>
 {% endblock %}

@@ -7,11 +7,8 @@
 {% block main %}
     <form id="form_sell" method="post">
         <div class="form-group">
-            <select class="form-control" name="symbol">
+            <select id="symbols_selector" class="form-control" name="symbol">
                 <option disabled selected value>Symbol</option>
-                {% for symbol in symbols %}
-                <option value="{{symbol.symbol}}">{{symbol.symbol}}</option>
-                {% endfor %}
             </select>
         </div>
         <div class="form-group">
@@ -19,9 +16,19 @@
         </div>
         <button class="btn btn-primary" type="submit">Sell</button>
     </form>
-    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left: 380px" class="alert alert-danger" role="alert" >
 
+    <div id="error" style="display: none; margin: 50px; width: 300px; margin-left: 380px" class="alert alert-danger" role="alert" >
     </div>
+
+
+<script type="text/html" id="symbols_template">
+<![CDATA[
+<% for (t=0; t < this.symbols.length; t++) {
+    var symbol = this.symbols[t]; %>
+<option value="<%= symbol %>"><%= symbol %></option>
+<% } %>
+]]>
+</script>
 
 <script>
 $( document ).ready(function() {
@@ -35,7 +42,7 @@ $( document ).ready(function() {
 
     var posting = $.post( "/api/sell", values )
       .done( function(data) {
-        window.location.href = "/";
+        window.location.href = "portfolio";
       })
       .fail( function(xhr, textStatus, errorThrown) {
           if (xhr.hasOwnProperty('responseJSON')) {
@@ -48,8 +55,15 @@ $( document ).ready(function() {
 
   })
 
-})
+    const request = new XMLHttpRequest();
+    request.open("GET", "/api/symbols");
+    request.onload = function(data) {
+        const json_data = JSON.parse(request.responseText);
+        $('#symbols_selector').append($('#symbols_template').jqote(json_data));
+    }
+    request.send();
 
+})
 </script>
 {% endblock %}
 
