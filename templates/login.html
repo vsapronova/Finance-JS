@@ -32,14 +32,15 @@
 
         var request = $.post( "/api/login", values )
             .done( function(data) {
-                window.location.href = "portfolio";
+                window.location.href = "/";
             })
             .fail( function(xhr, textStatus, errorThrown) {
                 if (xhr.hasOwnProperty('responseJSON')) {
                     $("#error").show();
                     $("#error").text(xhr.responseJSON.message);
                 } else {
-                    window.location.href = "apology.html";
+                    $("#error").show();
+                    $("#error").text("Something really unexpected happened");
                 }
             });
 

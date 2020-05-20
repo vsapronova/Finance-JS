@@ -52,8 +52,9 @@
               $("#error").show();
               $("#error").text(xhr.responseJSON.message);
           } else {
-              window.location.href = "apology.html";
-          }
+                $("#error").show();
+                $("#error").text("Something really unexpected happened");
+            }
       });
     })
 
