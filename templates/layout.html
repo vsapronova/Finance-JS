@@ -12,12 +12,12 @@
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- https://favicon.io/emoji-favicons/money-mouth-face/ -->
-        <link href="/static/favicon.ico" rel="icon">
+        <link href="/favicon.ico" rel="icon">
 
-        <link href="/static/styles.css" rel="stylesheet">
+        <link href="/css/styles.css" rel="stylesheet">
 
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="/static/js/jquery.jqote2.js"></script>
+        <script src="/js/jquery.jqote2.js"></script>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
@@ -35,17 +35,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbar">
                     <ul class="navbar-nav mr-auto mt-2 menu-private" style="display: none">
-                        <li class="nav-item"><a class="nav-link" href="/quote">Quote</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/buy">Buy</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/sell">Sell</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/history">History</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/quote.html">Quote</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/buy.html">Buy</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/sell.html">Sell</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/history.html">History</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2 menu-private" style="display: none">
-                        <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+                        <li class="nav-item"><a id="logout-link" class="nav-link" href="#">Log Out</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2 menu-public">
-                        <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/register.html">Register</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/login.html">Log In</a></li>
                     </ul>
             </div>
         </nav>
@@ -53,24 +53,32 @@
 
         <script>
 
-            $( document ).ready(function() {
-              var request = $.get( "/api/user")
-                  .done( function(data) {
+        $( document ).ready(function() {
+            var request = $.get( "/api/user")
+            .done( function(data) {
 
-                    $('.menu-private').show();
-                    $('.menu-public').hide();
+                $('.menu-private').show();
+                $('.menu-public').hide();
 
-                  })
-                  .fail( function(xhr, textStatus, errorThrown) {
-                    if (xhr.status === 401) {
-                        if (window.location.href.indexOf("register2") === -1 && window.location.href.indexOf("login2") === -1 ) {
-                            window.location.href = "login2";
-                        }
-
+            })
+            .fail( function(xhr, textStatus, errorThrown) {
+                if (xhr.status === 401) {
+                    if (window.location.href.indexOf("register.html") === -1 && window.location.href.indexOf("login.html") === -1 ) {
+                        window.location.href = "login.html";
                     }
 
-                  });
+                }
+
+            });
+            $('#logout-link').click( function(){
+
+                var getting = $.get("/logout")
+                .done( function(data) {
+                    window.location.href = "login.html";
+                })
+
             })
+        })
 
 
         </script>

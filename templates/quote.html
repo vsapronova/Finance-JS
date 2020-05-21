@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
     Quote
@@ -30,35 +30,30 @@
     </div>
     <script>
     $( document ).ready(function() {
-    $( "#form_quote" ).submit(function( event ) {
-    event.preventDefault();
-    $("#error").hide();
-     var values = $("#form_quote").serializeArray();
-     $('#form_quote').each(function(){
-    this.reset();
-    });
-    $(".info").each(function(){
-    this.reset();
-    });
+        $( "#form_quote" ).submit(function( event ) {
+            event.preventDefault();
+            $("#error").hide();
 
-    var request = $.post( "/api/quote", values )
+            var values = $("#form_quote").serializeArray();
+            $('#form_quote').each(function(){
+                this.reset();
+            });
 
-      .done( function(data) {
-        const json_data = JSON.parse(request.responseText);
-        $('#quote').append($('#quote_template').jqote(json_data.quote));
-      })
-      .fail( function(xhr, textStatus, errorThrown) {
-          if (xhr.hasOwnProperty('responseJSON')) {
-              $("#error").show();
-              $("#error").text(xhr.responseJSON.message);
-          } else {
-                $("#error").show();
-                $("#error").text("Something really unexpected happened");
-            }
-      });
+            var request = $.post( "/api/quote", values )
+                .done( function(data) {
+                    const json_data = JSON.parse(request.responseText);
+                    $('#quote').html($('#quote_template').jqote(json_data.quote));
+                })
+                .fail( function(xhr, textStatus, errorThrown) {
+                    if (xhr.hasOwnProperty('responseJSON')) {
+                        $("#error").show();
+                        $("#error").text(xhr.responseJSON.message);
+                    } else {
+                        $("#error").show();
+                        $("#error").text("Something really unexpected happened");
+                    }
+                });
+        })
     })
-
-  })
-
     </script>
 {% endblock %}

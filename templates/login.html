@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
     Log In
@@ -23,16 +23,16 @@
 
     $( document ).ready(function() {
 
-      $( "#form_login" ).submit(function( event ) {
-        event.preventDefault();
-        $("#error").hide();
+        $( "#form_login" ).submit(function( event ) {
+            event.preventDefault();
+            $("#error").hide();
 
 
-        var values = $("#form_login").serializeArray();
+            var values = $("#form_login").serializeArray();
 
-        var request = $.post( "/api/login", values )
+            var request = $.post( "/api/login", values )
             .done( function(data) {
-                window.location.href = "/";
+                window.location.href = "index.html";
             })
             .fail( function(xhr, textStatus, errorThrown) {
                 if (xhr.hasOwnProperty('responseJSON')) {
@@ -44,7 +44,7 @@
                 }
             });
 
-      })
+        })
 
     })
 

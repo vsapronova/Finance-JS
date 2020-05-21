@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
     Register
@@ -25,16 +25,16 @@
 
     $( document ).ready(function() {
 
-      $( "#form_register" ).submit(function( event ) {
-        event.preventDefault();
-        $("#error").hide();
+        $( "#form_register" ).submit(function( event ) {
+            event.preventDefault();
+            $("#error").hide();
 
 
-        var values = $("#form_register").serializeArray();
+            var values = $("#form_register").serializeArray();
 
-        var request = $.post( "/api/register", values )
+            var request = $.post( "/api/register", values )
             .done( function(data) {
-                window.location.href = "login";
+                window.location.href = "login.html";
             })
             .fail( function(xhr, textStatus, errorThrown) {
                 if (xhr.hasOwnProperty('responseJSON')) {
@@ -46,7 +46,7 @@
                 }
             });
 
-      })
+        })
 
     })
 

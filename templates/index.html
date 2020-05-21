@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
     Portfolio
@@ -48,13 +48,13 @@
     </script>
     <script>
     $( document ).ready(function() {
-      const request = new XMLHttpRequest();
-      request.open("GET", "/api/positions");
-      request.onload = function(data) {
-        const json_data = JSON.parse(request.responseText);
-        $('#positions').append($('#positions_template').jqote(json_data));
-      }
-      request.send();
+        const request = new XMLHttpRequest();
+        request.open("GET", "/api/positions");
+        request.onload = function(data) {
+            const json_data = JSON.parse(request.responseText);
+            $('#positions').append($('#positions_template').jqote(json_data));
+        }
+        request.send();
     });
     </script>
 {% endblock %}

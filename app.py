@@ -3,14 +3,14 @@ import datetime
 from storage import Storage
 
 from cs50 import SQL
-from flask import Flask, flash, jsonify, redirect, render_template, request, session, send_from_directory
+from flask import Flask, jsonify, redirect, request, session, send_from_directory
 from flask_session import Session
 from tempfile import mkdtemp
-from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
-from helpers import apology, login_required2, lookup, usd
+from helpers import login_required, lookup, usd
 
 
 # Configure application
@@ -50,12 +50,6 @@ storage = Storage(db)
 
 
 class HTTPException(Exception):
-    def __init__(self, message, code):
-        self.message = message
-        self.code = code
-
-
-class ApiException(Exception):
     def __init__(self, message, code = 400):
         self.message = message
         self.code = code
@@ -63,15 +57,13 @@ class ApiException(Exception):
 
 @app.errorhandler(Exception)
 def handle_exception(error):
-    if isinstance(error, ApiException):
-        return jsonify(message=error.message), error.code
     if isinstance(error, HTTPException):
-        return apology(error.message, error.code)
+        return jsonify(message=error.message), error.code
     raise error
 
 
 @app.route("/api/user", methods=["GET"])
-@login_required2
+@login_required
 def api_user():
     user = storage.get_user_by_id(session["user_id"])
 
@@ -102,7 +94,6 @@ def api_login2():
     # Remember which user has logged in
     session["user_id"] = user["id"]
 
-    # Redirect user to home page
     return "", 200
 
 
@@ -131,7 +122,7 @@ def api_register2():
             raise HTTPException("this username is already created", 400)
 
 @app.route("/api/positions", methods=["GET"])
-@login_required2
+@login_required
 def api_index2():
     """Show portfolio of stocks"""
     user_id = session["user_id"]
@@ -153,42 +144,42 @@ def api_index2():
                            "grand_total": usd(grand_total)})
 
 @app.route("/api/quote", methods=["POST"])
-@login_required2
+@login_required
 def api_quote2():
     """Get stock quote."""
     # session.clear()
     symbol = request.form.get("symbol")
     if symbol is "":
-        raise ApiException("symbol can't be empty", 403)
+        raise HTTPException("symbol can't be empty", 403)
     quote = lookup(symbol)
     if quote is None:
-        raise ApiException("invalid stock symbol", 403)
+        raise HTTPException("invalid stock symbol", 404)
     return jsonify({"success": True, "quote": quote})
 
 @app.route("/api/buy", methods=["POST"])
-@login_required2
+@login_required
 def api_buy2():
     symbol = request.form.get("symbol")
     shares = request.form.get("shares")
 
     if symbol is "":
-        raise ApiException("symbol can't be empty", 403)
+        raise HTTPException("symbol can't be empty", 403)
 
     if shares is "":
-        raise ApiException("must provide shares", 403)
+        raise HTTPException("must provide shares", 403)
 
     quantity = int(shares)
     if quantity < 1:
-        raise ApiException("number of shares must be 1 or greater", 403)
+        raise HTTPException("number of shares must be 1 or greater", 403)
 
     stock = lookup(symbol)
     if stock is None:
-        raise ApiException("invalid stock symbol", 403)
+        raise HTTPException("invalid stock symbol", 404)
 
     cash = storage.get_cash(session["user_id"])
     stocks_cost = stock["price"] * quantity
     if not cash >= stocks_cost:
-        raise ApiException("not enough cash")
+        raise HTTPException("not enough cash")
 
     insert_transaction(stock, quantity)
     left = cash - stocks_cost
@@ -198,7 +189,7 @@ def api_buy2():
     return "", 200
 
 @app.route("/api/symbols", methods=["GET"])
-@login_required2
+@login_required
 def api_symbols2():
     positions = storage.get_positions(session["user_id"])
     symbols = []
@@ -206,21 +197,22 @@ def api_symbols2():
         symbols.append(position["symbol"])
     return jsonify({"symbols": symbols})
 
+
 @app.route("/api/sell", methods=["POST"])
-@login_required2
+@login_required
 def api_sell2():
     symbol = lookup(request.form.get("symbol"))
     shares = request.form.get("shares")
 
     if symbol is "":
-        raise ApiException("choose a symbol", 403)
+        raise HTTPException("choose a symbol", 403)
 
     if shares is "":
-        raise ApiException("must provide shares", 403)
+        raise HTTPException("must provide shares", 403)
 
     quantity = int(shares)
     if quantity < 1:
-        raise ApiException("number of shares must be 1 or greater", 403)
+        raise HTTPException("number of shares must be 1 or greater", 403)
 
     selling_quantity = int(shares)
     existing_quantity = storage.get_position(session["user_id"], symbol["symbol"])
@@ -245,46 +237,21 @@ def api_sell2():
 
 
 @app.route("/api/history", methods=["GET"])
-@login_required2
+@login_required
 def api_transactions_history():
     """Show history of transactions"""
     user_id = session["user_id"]
     transactions = storage.get_transactions(user_id)
     return jsonify({"success": True, "transactions": transactions})
 
-
-@app.route("/login2", methods=["GET"])
-def login2():
-    return render_template("login2.html")
-
-@app.route("/register2", methods=["GET"])
-def register2():
-    return render_template("register2.html")
-
-@app.route("/quote2", methods=["GET"])
-def quote2():
-    return render_template("quote2.html")
-
-@app.route("/buy2", methods=["GET"])
-def buy2():
-    return render_template("buy2.html")
-
-@app.route("/sell2", methods=["GET"])
-def sell2():
-    return render_template("sell2.html")
-
-@app.route("/", methods=["GET"])
-def index():
-    return render_template("index.html")
-
-@app.route("/history2", methods=["GET"])
-def history2():
-    return render_template("history2.html")
+@app.route("/")
+def root():
+    return redirect("index.html")
 
 
-# @app.route('/<path:filename>')
-# def static_file(filename):
-#     return send_from_directory("./www", filename)
+@app.route('/<path:filename>')
+def static_file(filename):
+    return send_from_directory("./www", filename)
 
 
 def insert_transaction(symbol, shares):
@@ -309,13 +276,11 @@ def position_update(symbol, quantity):
 
 @app.route("/logout")
 def logout():
-    """Log user out"""
 
     # Forget any user_id
     session.clear()
 
-    # Redirect user to login form
-    return redirect("login")
+    return "", 200
 
 
 if __name__ == '__main__':

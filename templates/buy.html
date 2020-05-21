@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
     Buy
@@ -24,16 +24,16 @@
 
 $( document ).ready(function() {
 
-  $( "#form_buy" ).submit(function( event ) {
-    event.preventDefault();
-    $("#error").hide();
+    $( "#form_buy" ).submit(function( event ) {
+        event.preventDefault();
+        $("#error").hide();
 
 
-    var values = $("#form_buy").serializeArray();
+        var values = $("#form_buy").serializeArray();
 
-    var posting = $.post( "/api/buy", values )
+        var posting = $.post( "/api/buy", values )
         .done( function(data) {
-            window.location.href = "portfolio";
+            window.location.href = "index.html";
         })
         .fail( function(xhr, textStatus, errorThrown) {
             if (xhr.hasOwnProperty('responseJSON')) {
@@ -42,10 +42,10 @@ $( document ).ready(function() {
             } else {
                 $("#error").show();
                 $("#error").text("Something really unexpected happened");
-                }
+            }
         });
 
-  })
+    })
 
 })
 
